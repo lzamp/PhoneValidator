@@ -1,8 +1,7 @@
 package dao;
 
-import domain.PhoneNumber;
+
 import entity.DataEntry;
-import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
 import java.sql.SQLException;

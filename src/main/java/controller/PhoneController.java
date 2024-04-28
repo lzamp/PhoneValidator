@@ -1,27 +1,25 @@
 package controller;
 
-import com.opencsv.CSVReader;
 import entity.DataEntry;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import repository.DataEntryRepository;
 import service.PhoneNumberService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+
 
 @RestController
+@RequestMapping("/api")
 public class PhoneController {
     @Autowired
     private PhoneNumberService phoneNumberService;
@@ -30,12 +28,12 @@ public class PhoneController {
     private DataEntryRepository dataEntryRepo;
 
     //Chiamata post che prende in input un file csv con una lista di numeri che salva a DB
-    @PostMapping("/upload-csv")
-    public String uploadCSVFile(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/upload_csv")
+    public ResponseEntity<String> uploadCSVFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return "Please select a CSV file to upload.";
+            return ResponseEntity.ok("File not uploaded");
         } else {
-            try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
+           /* try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
                 String[] values = null;
                 List<DataEntry> entries = new ArrayList<>();
                 while ((values = csvReader.readNext()) != null) {
@@ -44,11 +42,20 @@ public class PhoneController {
                     dataEntry.setPhoneNumber(values[1]);
                     dataEntry.setDateLoad(Date.valueOf(LocalDate.now()));
                     entries.add(dataEntry);
+                }*/
+            try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = fileReader.readLine()) != null) {
+                    String[] data = line.split(","); // Assumendo che il separatore sia una virgola
+                    DataEntry record = new DataEntry();
+                    record.setId(data[0]);
+                    record.setPhoneNumber(data[1]);
+                    record.setDateLoad(Date.valueOf(LocalDate.now()));
+                    dataEntryRepo.save(record);
                 }
-                dataEntryRepo.saveAll(entries);
-                return "File successfully uploaded and data inserted into the database!";
+                return ResponseEntity.ok("File uploaded successfully!");
             } catch (Exception e) {
-                return "An error occurred while processing the CSV file.";
+                return ResponseEntity.badRequest().body("Failed to upload file: " + e.getMessage());
             }
         }
     }
@@ -69,5 +76,11 @@ public class PhoneController {
             return "Failed to upload file: " + e.getMessage();
         }
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint() {
+        return ResponseEntity.ok("Endpoint is working");
+    }
+
 }
 
