@@ -1,5 +1,6 @@
 package service;
 
+import DTO.PhoneNumberValidationResult;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -7,7 +8,7 @@ import java.util.List;
 
 @Service
 public interface PhoneNumberService {
-    String validateAndCorrect(String phoneNumber);
+    PhoneNumberValidationResult validateAndCorrect(String phoneNumber);
 
-    String saveNumbers() throws SQLException;
+    boolean saveNumbers() throws SQLException;
 }

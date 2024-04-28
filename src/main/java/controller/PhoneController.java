@@ -58,9 +58,13 @@ public class PhoneController {
     public String controllAndsavePhoneNumber()  throws SQLException {
         try {
             // Save the numbers to database
-            String save = phoneNumberService.saveNumbers();
+            boolean save = phoneNumberService.saveNumbers();
+            if (save == true) {
+                return "File uploaded successfully.";
+            }else{
+                return "Error or no file uploaded.";
+            }
 
-            return "File uploaded successfully.";
         } catch (Exception e) {
             return "Failed to upload file: " + e.getMessage();
         }
