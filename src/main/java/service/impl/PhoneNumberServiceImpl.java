@@ -1,6 +1,7 @@
 package service.impl;
 
 
+import DTO.PhoneNumberExtraction;
 import DTO.PhoneNumberValidationResult;
 import dao.PhoneNumberDAO;
 import entity.PhoneNumber;
@@ -109,5 +110,14 @@ public class PhoneNumberServiceImpl implements PhoneNumberService {
     @Override
     public List<PhoneNumber> extractElaboratedNumber(String phoneNum) throws SQLException {
         return phoneNumberDAO.extractElaboratedNumber(phoneNum);
+    }
+
+    @Override
+    public PhoneNumberExtraction validatePhoneNumbers() throws SQLException {
+        PhoneNumberExtraction result = new PhoneNumberExtraction();
+        result.setAcceptableNumbers(phoneNumberDAO.fetchAcceptableNumbers());
+        result.setCorrectedNumbers(phoneNumberDAO.fetchCorrectedNumbers());
+        result.setIncorrectNumbers(phoneNumberDAO.fetchIncorrectNumbers());
+        return result;
     }
 }

@@ -7,6 +7,7 @@ import entity.PhoneNumber;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 
 public interface PhoneNumberDAO {
@@ -18,4 +19,7 @@ public interface PhoneNumberDAO {
     List<PhoneNumber> extractElaboratedNumber(String phoneNum) throws SQLException;
 
     boolean saveNumber(String phoneNum) throws SQLException;
+    public List<String> fetchAcceptableNumbers() throws SQLException;
+    public Map<String, String> fetchCorrectedNumbers() throws SQLException;
+    public List<String> fetchIncorrectNumbers() throws SQLException;
 }

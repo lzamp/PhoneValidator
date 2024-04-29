@@ -10,7 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class PhoneNumberDAOImpl implements PhoneNumberDAO {
@@ -115,6 +118,27 @@ public class PhoneNumberDAOImpl implements PhoneNumberDAO {
         return rowsAffected > 0; // restituisce true se l'inserimento è riuscito
     }
 
+    @Override
+    @Transactional
+    public List<String> fetchAcceptableNumbers() throws SQLException {
+        String sql = "SELECT distinct d.phone_number FROM phone_numbers p INNER JOIN daticsv d ON p.id = d.id WHERE p.status = 'ACCEPTABLE'";
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
 
+    @Override
+    @Transactional
+    public Map<String, String> fetchCorrectedNumbers() throws SQLException {
+        String sql = "SELECT distinct d.phone_number AS old_number, p.phone_number AS new_number FROM phone_numbers p INNER JOIN daticsv d ON p.id = d.id WHERE p.status = 'CORRECTED'";
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                new HashMap.SimpleEntry<>(rs.getString("old_number"), rs.getString("new_number"))
+        ).stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    @Override
+    @Transactional
+    public List<String> fetchIncorrectNumbers() throws SQLException {
+        String sql = "SELECT distinct d.phone_number FROM phone_numbers p INNER JOIN daticsv d ON p.id = d.id WHERE p.status = 'INVALID'";
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
 
 }

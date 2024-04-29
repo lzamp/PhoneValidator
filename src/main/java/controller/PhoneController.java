@@ -1,5 +1,6 @@
 package controller;
 
+import DTO.PhoneNumberExtraction;
 import entity.DataEntry;
 
 
@@ -87,6 +88,21 @@ public class PhoneController {
         }
     }
 
+    @GetMapping(value = "/validate", produces = "application/json")
+    public ResponseEntity<PhoneNumberExtraction> extractAll() {
+        try {
+            PhoneNumberExtraction phoneNumberExtraction = phoneNumberService.validatePhoneNumbers();
+            if (phoneNumberExtraction != null) {
+                return ResponseEntity.ok(phoneNumberExtraction);
+            } else {
+                // Se la lista è vuota, ritorna uno status 204 No Content
+                return ResponseEntity.noContent().build();
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/test")
     public ResponseEntity<String> testEndpoint() {
