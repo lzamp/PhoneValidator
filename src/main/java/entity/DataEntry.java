@@ -13,10 +13,10 @@ public class DataEntry {
     @Id
     String id;
 
-    @Column(name = "phoneNumber")
+    @Column(name = "phone_number")
     String phoneNumber;
 
-    @Column(name = "dateLoad")
+    @Column(name = "date_load")
     Date dateLoad;
 
     public String getId() {

@@ -3,6 +3,7 @@ package controller;
 import entity.DataEntry;
 
 
+import entity.PhoneNumber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,12 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 
 @RestController
-@RequestMapping("/api")
+//@RequestMapping("/api")
 public class PhoneController {
     @Autowired
     private PhoneNumberService phoneNumberService;
@@ -33,19 +36,16 @@ public class PhoneController {
         if (file.isEmpty()) {
             return ResponseEntity.ok("File not uploaded");
         } else {
-           /* try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
-                String[] values = null;
-                List<DataEntry> entries = new ArrayList<>();
-                while ((values = csvReader.readNext()) != null) {
-                    DataEntry dataEntry = new DataEntry();
-                    dataEntry.setId(values[0]);
-                    dataEntry.setPhoneNumber(values[1]);
-                    dataEntry.setDateLoad(Date.valueOf(LocalDate.now()));
-                    entries.add(dataEntry);
-                }*/
+
             try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
+                boolean isFirstLine = true;  // Flag per identificare la prima riga
+
                 while ((line = fileReader.readLine()) != null) {
+                    if (isFirstLine) {
+                        isFirstLine = false; // Imposta il flag a false dopo la prima riga
+                        continue; // Salta la prima riga (header)
+                    }
                     String[] data = line.split(","); // Assumendo che il separatore sia una virgola
                     DataEntry record = new DataEntry();
                     record.setId(data[0]);
@@ -53,6 +53,7 @@ public class PhoneController {
                     record.setDateLoad(Date.valueOf(LocalDate.now()));
                     dataEntryRepo.save(record);
                 }
+                boolean save = phoneNumberService.saveNumbers();
                 return ResponseEntity.ok("File uploaded successfully!");
             } catch (Exception e) {
                 return ResponseEntity.badRequest().body("Failed to upload file: " + e.getMessage());
@@ -61,21 +62,31 @@ public class PhoneController {
     }
 
 
-    @GetMapping(value = "/controllAndSave", produces = "application/json")
-    public String controllAndsavePhoneNumber()  throws SQLException {
+    @GetMapping(value = "/controllAndSave/{phoneNum}", produces = "application/json")
+    public ResponseEntity<List<PhoneNumber>> controllAndsavePhoneNumber(@PathVariable String phoneNum) {
         try {
-            // Save the numbers to database
-            boolean save = phoneNumberService.saveNumbers();
-            if (save == true) {
-                return "File uploaded successfully.";
-            }else{
-                return "Error or no file uploaded.";
+            boolean save = phoneNumberService.saveNumber(phoneNum);
+            if (save) {
+                List<PhoneNumber> phoneNumber = phoneNumberService.extractElaboratedNumber(phoneNum);
+                if (phoneNumber != null && !phoneNumber.isEmpty()) {
+                    return ResponseEntity.ok(phoneNumber);
+                } else {
+                    // Se la lista è vuota, ritorna uno status 204 No Content
+                    return ResponseEntity.noContent().build();
+                }
+            } else {
+                // Se il salvataggio fallisce e non ci sono numeri da ritornare
+                return ResponseEntity.badRequest().body(Collections.emptyList());
             }
-
+        } catch (SQLException e) {
+            // Gestione specifica per SQLException
+            return ResponseEntity.internalServerError().body(Collections.emptyList());
         } catch (Exception e) {
-            return "Failed to upload file: " + e.getMessage();
+            // Gestione di altre eccezioni non specificate
+            return ResponseEntity.internalServerError().body(Collections.emptyList());
         }
     }
+
 
     @GetMapping("/test")
     public ResponseEntity<String> testEndpoint() {

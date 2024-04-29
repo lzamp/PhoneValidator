@@ -3,7 +3,7 @@ package service.impl;
 
 import DTO.PhoneNumberValidationResult;
 import dao.PhoneNumberDAO;
-import domain.PhoneNumber;
+import entity.PhoneNumber;
 import entity.DataEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class PhoneNumberServiceImpl implements PhoneNumberService {
         // Si assume da requisito che il numero corretto ha lunghezza 11 e inizia con 27.
         //Vado a verificare che il numero non sia null o vuoto. In questo caso vado a mettere null nel campo del numero di telefono
         if (phoneNumber == null || phoneNumber.isBlank()) {
-            return new PhoneNumberValidationResult(null, "INVALID");
+            return new PhoneNumberValidationResult("", "INVALID");
         }
 
         //Rimuove eventuali spazzi
@@ -52,29 +52,62 @@ public class PhoneNumberServiceImpl implements PhoneNumberService {
             return new PhoneNumberValidationResult(phoneNumber, "CORRECTED");
         }
 
-        return new PhoneNumberValidationResult(null, "INVALID");
+        return new PhoneNumberValidationResult("", "INVALID");
     }
 
 
     @Override
     @Transactional
     public boolean saveNumbers() throws SQLException {
-        Date date = phoneNumberDAO.extractLastDate();
-        List<DataEntry> dataEntries = phoneNumberDAO.extractPhoneNumber(date);
+
+        List<DataEntry> dataEntries = phoneNumberDAO.extractPhoneNumber();
         boolean ris = false;
 
         if(!dataEntries.isEmpty()){
             for (DataEntry entry : dataEntries) {
                 PhoneNumberValidationResult validationResult = validateAndCorrect(entry.getPhoneNumber());
-                if (validationResult.getStatus().equals("ACCEPTABLE") || validationResult.getStatus().equals("CORRECTED")) {
-                    PhoneNumber phoneNumber = new PhoneNumber(validationResult.getPhoneNumber(), validationResult.getStatus(), LocalDate.now());
-                    phoneNumberRepository.save(phoneNumber);
-                    ris = true;
-                } else {
-                    ris = false;
-                }
+                PhoneNumber phoneNumber = new PhoneNumber();
+                phoneNumber.setId(entry.getId());
+                phoneNumber.setPhoneNumber(validationResult.getPhoneNumber());
+                phoneNumber.setStatus(validationResult.getStatus());
+                phoneNumber.setDateLoad(Date.valueOf(LocalDate.now()));
+                phoneNumberRepository.save(phoneNumber);
+                ris = true;
+
             }
         }
         return ris;
+    }
+
+    @Override
+    @Transactional
+    public boolean saveNumber(String phoneNum) throws SQLException {
+        boolean save = phoneNumberDAO.saveNumber(phoneNum);
+
+        List<DataEntry> dataEntries = null;
+        if(save == true) {
+            dataEntries = phoneNumberDAO.extractPhoneNumberInput(phoneNum);
+        }
+        boolean ris = false;
+
+        if(!dataEntries.isEmpty()){
+            for (DataEntry entry : dataEntries) {
+                PhoneNumberValidationResult validationResult = validateAndCorrect(entry.getPhoneNumber());
+                PhoneNumber phoneNumber = new PhoneNumber();
+                phoneNumber.setId(entry.getId());
+                phoneNumber.setPhoneNumber(validationResult.getPhoneNumber());
+                phoneNumber.setStatus(validationResult.getStatus());
+                phoneNumber.setDateLoad(Date.valueOf(LocalDate.now()));
+                phoneNumberRepository.save(phoneNumber);
+                ris = true;
+
+            }
+        }
+        return ris;
+    }
+
+    @Override
+    public List<PhoneNumber> extractElaboratedNumber(String phoneNum) throws SQLException {
+        return phoneNumberDAO.extractElaboratedNumber(phoneNum);
     }
 }

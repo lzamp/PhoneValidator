@@ -1,26 +1,27 @@
-package domain;
+package entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
-@Table(name = "phoneNumbers")
+
+@Table(name = "phone_numbers")
+
 public class PhoneNumber {
 
     @Id
     private String id;
 
+    @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "status")
     private String status;
 
+    @Column(name = "date_load")
     private Date dateLoad;
 
-    public PhoneNumber(String phoneNumber, String status, LocalDate now) {
-    }
 
     public String getId() {
         return id;

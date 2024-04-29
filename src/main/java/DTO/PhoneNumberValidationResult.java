@@ -1,6 +1,7 @@
 package DTO;
 
 public class PhoneNumberValidationResult {
+
     private String phoneNumber;
     private String status;
 
