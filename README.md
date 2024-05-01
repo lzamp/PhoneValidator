@@ -46,12 +46,13 @@ Nella cartella "resources" sono prsenti due cartelle "static" e "templates" che 
 
 ## Docker 
 Il file dockercompose contiene le informazioni specifiche per la creazione sia dell'immagine del DB sia della parte di API in uno stesso container Docker. 
-Le connessionei al DB sono contenute in un file apposito per non scriverle in chiaro a codice. 
+Le connessionei al DB sono contenute in un file apposito per non scriverle in chiaro a codice. Il file docker-compose.yaml, .env e Dockerfile devono essere nella stessa cartella.
 
-I comandi da lanciare per creare il container e relative immagini sono
+I comandi devo essere eseguiti nella cartella dove si trovano i file di Docker necessari per creare il container e relative immagini, che sono:
 `docker-compose build `
-Una volta che la buil è andata a buon fine si avviano con
+Una volta che la build è andata a buon fine si avviano con
 `docker-compose up`
+
 
 Per poter accedere all'interfaccia web basta accedere all'url http://localhost:8080/
 
